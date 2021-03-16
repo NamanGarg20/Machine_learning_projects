@@ -164,7 +164,7 @@ class decisionTree:
         for i in range(len(data["Class"])):
             if self.evaluate(data, i, root) == data["Class"][i]:
                 predict+=1
-        print(predict)
+        print(predict/len(data['Class']))
         return predict/len(data["Class"])
 
     
