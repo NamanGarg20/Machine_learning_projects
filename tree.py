@@ -1,22 +1,30 @@
 import numpy as np
 import pandas as pd
-import math
 from pprint import pprint
 
-dataset = None
+
 def main():
     file = "training_set.csv"
     tree = decisionTree()
     testdata =pd.read_csv("test_set.csv")
     valid = pd.read_csv("validation_set.csv")
     df = tree.load_csv(file)
-    heuristic = 'var_imp'
+    heuristic = 'gain'
     print("building Tree")
     root = tree.buildTree(df,df.columns[:-1], heuristic)
     
+#    depth = 0
     print(tree.parse_tree(root,0))
+    print(tree.accuracy(df,root))
     print(tree.accuracy(testdata,root))
     print(tree.accuracy(valid,root))
+    
+    root2 = tree.buildTree(df,df.columns[:-1],'variance')
+    print(tree.parse_tree(root2,0))
+#    print(depth)
+    print(tree.accuracy(df,root2))
+    print(tree.accuracy(testdata,root2))
+    print(tree.accuracy(valid,root2))
 class Node:
     def __init__(self):
         self.attr = None
@@ -62,7 +70,9 @@ class decisionTree:
     def variance(self, column):
         counts = self.getCount(column)
         total = sum(counts)
-        variance = 0
+        if len(counts)<=1:
+            return 0
+        variance = 1
         for i in range(len(counts)):
             variance*= counts[i]/total
         return variance
@@ -70,14 +80,13 @@ class decisionTree:
     def InfoGain_variance(self,data,attr_name):
         total_variance = self.variance(data["Class"])
         counts= self.getCount(data[attr_name])
-        
         attr_impurity = 0
         for i in range(len(counts)):
             probability = counts[i]/sum(counts)
             split = data.where(data[attr_name]==i).dropna()
             split_variance = self.variance(split["Class"])
             attr_impurity += probability * split_variance
-        
+            
         gain = total_variance - attr_impurity
         return gain
 
@@ -100,15 +109,27 @@ class decisionTree:
         else:
             node.parent = self.max_freq(data, "Class")
             gains = []
-            if heuristic=='info_gain':
+            
+            max_gain = np.NINF
+            best_attr = ''
+            if heuristic=='gain':
                 for attr in attributes:
-                    gains.append(self.InfoGain_entropy(data,attr))
-            elif heuristic=='var_imp':
+                    if attr!="Class":
+                        gain = self.InfoGain_entropy(data,attr)
+                        if max_gain<gain:
+                            max_gain = gain
+                            best_attr = attr
+            elif heuristic=='variance':
+                
                 for attr in attributes:
-                    gains.append(self.InfoGain_variance(data,attr))
+                    gain = self.InfoGain_variance(data,attr)
+                    if max_gain<gain:
+                        max_gain = gain
+                        best_attr = attr
+                        
                     
-            max_idx = np.argmax(gains)
-            best_attr = attributes[max_idx]
+#            max_idx = np.argmax(gains)
+#            best_attr = attributes[max_idx]
                 
             node.attr = best_attr
                 
@@ -125,6 +146,47 @@ class decisionTree:
             node.right = self.buildTree(dataR,attributes,heuristic)
             
         return(node)
+        
+#    def buildTree2(self, data, attributes):
+#        node = Node()
+#        unique = np.unique(data["Class"])
+#        if len(unique) == 1:
+#            node.value = int(unique[0])
+#
+#        elif len(data)==0:
+#            node.value = self.max_freq(self.dataset, "Class")
+#
+#        elif len(attributes) ==0:
+#            node.value = node.parent
+#        else:
+#            node.parent = self.max_freq(data, "Class")
+#
+#            max_gain = np.NINF
+#            best_attr = ''
+#            for attr in attributes:
+#                if attr!="Class":
+#                    gain = self.InfoGain_variance(data,attr)
+#                    if max_gain<gain:
+#                        max_gain = gain
+#                        best_attr = attr
+#
+##            max_idx = np.argmax(gains)
+##            best_attr = attributes[max_idx]
+#
+#            node.attr = best_attr
+#
+#            newAttrs = []
+#            for attr in attributes:
+#                if attr!=best_attr:
+#                    newAttrs.append(attr)
+#            attributes = newAttrs
+#            dataL = data.where(data[best_attr] == 0).dropna()
+#            node.left = self.buildTree2(dataL,attributes)
+#
+#            dataR = data.where(data[best_attr] == 1).dropna()
+#            node.right = self.buildTree2(dataR,attributes)
+#
+#        return(node)
         
     def parse_tree(self, node , n):
         s = ''
@@ -164,7 +226,6 @@ class decisionTree:
         for i in range(len(data["Class"])):
             if self.evaluate(data, i, root) == data["Class"][i]:
                 predict+=1
-        print(predict/len(data['Class']))
         return predict/len(data["Class"])
 
     
