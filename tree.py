@@ -63,7 +63,7 @@ class decisionTree:
         counts = self.getCount(column)
         total = sum(counts)
         variance = 0
-        for i in range(2):
+        for i in range(len(counts)):
             variance*= counts[i]/total
         return variance
         
@@ -72,7 +72,7 @@ class decisionTree:
         counts= self.getCount(data[attr_name])
         
         attr_impurity = 0
-        for i in range(2):
+        for i in range(len(counts)):
             probability = counts[i]/sum(counts)
             split = data.where(data[attr_name]==i).dropna()
             split_variance = self.variance(split["Class"])
@@ -105,7 +105,7 @@ class decisionTree:
                     gains.append(self.InfoGain_entropy(data,attr))
             elif heuristic=='var_imp':
                 for attr in attributes:
-                    gains.append(self.InfoGain_entropy(data,attr))
+                    gains.append(self.InfoGain_variance(data,attr))
                     
             max_idx = np.argmax(gains)
             best_attr = attributes[max_idx]
