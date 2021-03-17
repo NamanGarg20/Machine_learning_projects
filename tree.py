@@ -50,9 +50,9 @@ class decisionTree:
                 
     def entropy(self,column):
         counts = self.getCount(column)
-        entropy = 0
+        entropy = 0.0
         if len(counts)==0:
-            return 0
+            return 0.0
         total = sum(counts)
         for i in range(len(counts)):
             entropy += -float(counts[i])/total*np.log2(float(counts[i])/total)
@@ -63,7 +63,7 @@ class decisionTree:
         total_entropy = self.entropy(data["Class"])
         counts= self.getCount(data[attr_name])
         
-        attr_Entropy = 0
+        attr_Entropy = 0.0
         for i in range(len(counts)):
             probability = float(counts[i])/sum(counts)
             split = data.where(data[attr_name]==i).dropna()
@@ -113,7 +113,6 @@ class decisionTree:
             node.value = node.parent
         else:
             node.parent = self.max_freq(data, "Class")
-            gains = []
             
             max_gain = np.NINF
             best_attr = ''
@@ -182,7 +181,8 @@ class decisionTree:
                 return self.evaluate(data, value, node.right)
     
     def accuracy(self, data, root):
-        predict = 0
+        predict = 0.0
+        print(root.value)
         for i in range(len(data["Class"])):
             if self.evaluate(data, i, root) == data["Class"][i]:
                 predict+=1

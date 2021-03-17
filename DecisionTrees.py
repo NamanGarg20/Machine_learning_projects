@@ -4,6 +4,7 @@ import numpy as np
 from collections import defaultdict
 import math
 
+
 def log2(x):
     if x == 0:
         return 0
@@ -36,20 +37,22 @@ class DecisionTree:
     def split_dataset(self, data, best_attr, value):
         newdata = defaultdict(list)
         for attr in data.keys():
+            newdata[attr] = []
+        for attr in data.keys():
             for i in range(len(data[attr])):
                 if data[best_attr][i] == value:
                     newdata[attr].append(data[attr][i])
-        return {k: v for k, v in newdata.items() if v is not None}
+        return newdata
     def getCount(self, arr):
         count = np.unique(arr, return_counts = True)[1]
         return count
                 
     def entropy(self,column):
         counts = self.getCount(column)
-        entropy = 0
+        entropy = 0.0
         total = sum(counts)
         if len(counts)==0:
-            return 0
+            return 0.0
         for i in range(len(counts)):
             entropy += -counts[i]/total*np.log2(counts[i]/total)
         return entropy
@@ -59,7 +62,7 @@ class DecisionTree:
         total_entropy = self.entropy(data["Class"])
         counts= self.getCount(data[attr_name])
         
-        attr_Entropy = 0
+        attr_Entropy = 0.0
         for i in range(len(counts)):
             probability = counts[i]/sum(counts)
             split = self.split_dataset(data, attr_name, str(i))
@@ -73,7 +76,7 @@ class DecisionTree:
         total = sum(counts)
         if len(counts)<=1:
             return 0
-        variance = 1
+        variance = 1.0
         for i in range(len(counts)):
             variance*= counts[i]/total
         return variance
@@ -81,10 +84,10 @@ class DecisionTree:
     def InfoGain_variance(self,data,attr_name):
         total_variance = self.variance(data["Class"])
         counts= self.getCount(data[attr_name])
-        attr_impurity = 0
+        attr_impurity = 0.0
         for i in range(len(counts)):
             probability = counts[i]/sum(counts)
-            split = data.where(data[attr_name]==i).dropna()
+            split = self.split_dataset(data,attr_name,str(i))
             split_variance = self.variance(split["Class"])
             attr_impurity += probability * split_variance
             
@@ -92,9 +95,9 @@ class DecisionTree:
         return gain
 
     def max_freq(self,data, target):
-#        counts = self.getCount(data[target])
-#        freq = np.argmax(counts)
-#        return int(np.unique(data[target])[freq])
+        counts = self.getCount(data[target])
+        freq = np.argmax(counts)
+        return int(np.unique(data[target])[freq])
         return 0
     
     def buildTree(self, data, attributes, heuristic):
@@ -103,14 +106,13 @@ class DecisionTree:
         if len(unique) == 1:
             node.value = int(unique[0])
         
-        elif len(data)==0:
+        elif len(data["Class"])==0:
             node.value = self.max_freq(self.dataset, "Class")
         
         elif len(attributes) ==0:
             node.value = node.parent
         else:
             node.parent = self.max_freq(data, "Class")
-            gains = []
             
             max_gain = np.NINF
             best_attr = ''
@@ -124,10 +126,11 @@ class DecisionTree:
             elif heuristic=='variance':
                 
                 for attr in attributes:
-                    gain = self.InfoGain_variance(data,attr)
-                    if max_gain<gain:
-                        max_gain = gain
-                        best_attr = attr
+                    if attr!="Class":
+                        gain = self.InfoGain_variance(data,attr)
+                        if max_gain<gain:
+                            max_gain = gain
+                            best_attr = attr
                         
                 
             node.attr = best_attr
@@ -175,18 +178,16 @@ class DecisionTree:
         if node.attr is None:
             return node.value
         else:
-            if data[node.attr][value] == 0:
+            if data[node.attr][value] == '0':
                 return self.evaluate(data, value, node.left)
             else:
                 return self.evaluate(data, value, node.right)
     
     def accuracy(self, data, root):
-        predict = 0
+        predict = 0.0
         for i in range(len(data["Class"])):
-            if self.evaluate(data, i, root) == data["Class"][i]:
+            if self.evaluate(data, i, root) == int(data["Class"][i]):
                 predict+=1
-        print(predict)
-        print(len(data["Class"]))
         return predict/len(data["Class"])
     
     
@@ -195,12 +196,15 @@ def main():
     tree1 = DecisionTree()
     trainData = tree1.load_csv("training_set.csv")
     testData = tree1.load_csv("test_set.csv")
-    print(trainData.keys())
-    treeRoot = tree1.buildTree(trainData, trainData.keys(), "gain")
     
+    treeRoot = tree1.buildTree(trainData, trainData.keys(), "gain")
+
     print(tree1.parse_tree(treeRoot, 0))
+    
+    treeRoot2 = tree1.buildTree(trainData, trainData.keys(), "variance")
+    print(tree1.parse_tree(treeRoot2, 0))
     print(tree1.accuracy(trainData, treeRoot))
-    print(tree1.accuracy(testData, treeRoot))
+    print(tree1.accuracy(testData, treeRoot2))
     
         
 #print(load_csv("training_set.csv")[0])
