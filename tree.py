@@ -48,6 +48,8 @@ class decisionTree:
     def entropy(self,column):
         counts = self.getCount(column)
         entropy = 0
+        if len(counts)==0:
+            return 0
         total = sum(counts)
         for i in range(len(counts)):
             entropy += -counts[i]/total*np.log2(counts[i]/total)
@@ -127,10 +129,6 @@ class decisionTree:
                         max_gain = gain
                         best_attr = attr
                         
-                    
-#            max_idx = np.argmax(gains)
-#            best_attr = attributes[max_idx]
-                
             node.attr = best_attr
                 
             newAttrs = []
@@ -146,47 +144,6 @@ class decisionTree:
             node.right = self.buildTree(dataR,attributes,heuristic)
             
         return(node)
-        
-#    def buildTree2(self, data, attributes):
-#        node = Node()
-#        unique = np.unique(data["Class"])
-#        if len(unique) == 1:
-#            node.value = int(unique[0])
-#
-#        elif len(data)==0:
-#            node.value = self.max_freq(self.dataset, "Class")
-#
-#        elif len(attributes) ==0:
-#            node.value = node.parent
-#        else:
-#            node.parent = self.max_freq(data, "Class")
-#
-#            max_gain = np.NINF
-#            best_attr = ''
-#            for attr in attributes:
-#                if attr!="Class":
-#                    gain = self.InfoGain_variance(data,attr)
-#                    if max_gain<gain:
-#                        max_gain = gain
-#                        best_attr = attr
-#
-##            max_idx = np.argmax(gains)
-##            best_attr = attributes[max_idx]
-#
-#            node.attr = best_attr
-#
-#            newAttrs = []
-#            for attr in attributes:
-#                if attr!=best_attr:
-#                    newAttrs.append(attr)
-#            attributes = newAttrs
-#            dataL = data.where(data[best_attr] == 0).dropna()
-#            node.left = self.buildTree2(dataL,attributes)
-#
-#            dataR = data.where(data[best_attr] == 1).dropna()
-#            node.right = self.buildTree2(dataR,attributes)
-#
-#        return(node)
         
     def parse_tree(self, node , n):
         s = ''

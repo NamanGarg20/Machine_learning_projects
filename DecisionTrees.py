@@ -11,14 +11,15 @@ def log2(x):
 
 class Node:
     def __init__(self):
-        self.attr = ''
+        self.attr = None
         self.value = None
         self.left = None
         self.right = None
+        self.parent = None
 
 class DecisionTree:
     def __init__(self):
-        self.root = Node()
+        self.dataset = None
 
     def load_csv(self,filename):
         columns = defaultdict(list)
@@ -28,172 +29,178 @@ class DecisionTree:
             for row in reader:
                 for i in range(len(headers)):
                     columns[headers[i]].append(row[i])
+        if self.dataset is None:
+            self.dataset = columns
         return columns
         
-    def entropy_class(self, data):
-        target_col = data["Class"]
-        elements,counts = np.unique(target_col,return_counts = True)
-        entropy = np.sum([(-counts[i]/np.sum(counts))*np.log2(counts[i]/np.sum(counts)) for i in range(len(elements))])
-        return entropy
-        
-#    def attrEntropy(self, data, attr):
-#        elements,count = np.unique(data[attr],return_counts = True)
-#        entropy = 0
-#        for i in elements:
-#            probability = count[i] / len(data[attr])
-#            entropy += probability * np.log2(probability)
-#        return entropy
-#
-#
-        
-    def split_attr(self, data,count):
-#        target_variables,count = np.unique(data["Class"],return_counts = True) #This gives all '1' and '0'
-        ClassAtrr =data["Class"]
-        entropy_class = self.entropy_class(data)
-        best_attr= ''
-        max_gain = np.NINF
-        #for attr in data.keys():
-        attrEnt1 = 0
-        attrEnt2 = 0
-        for attr in data.keys():
-            if attr!="Class":
-                num1 = 0
-                num2 = 0
-                num3 = 0
-                num4 = 0
-                entropy = 0
-                for i in range(len(data[attr])):
-                    if data[attr][i] == '0':
-                        if ClassAtrr[i]=='0':
-                            num1+=1
-                        else:
-                            num2+=1
-                    else:
-                        if ClassAtrr[i]=='0':
-                            num3+=1
-                        else:
-                            num4+=1
-                prob0 = count[0]/np.sum(count)
-                attrEnt1 = (num1/count[0])*log2(num1/count[0]) + (num2/count[1])*log2(num2/count[1])
-                prob1 = count[1]/np.sum(count)
-                
-                attrEnt2 = (num3/count[0])*log2(num3/count[0]) + (num4/count[1])*log2(num4/count[1])
-                
-                attrEntropy = prob0*(attrEnt1) + prob1*(attrEnt2)
-                Info_gain = entropy_class + attrEntropy
-                
-                if max_gain<Info_gain:
-                    max_gain = Info_gain
-                    best_attr = attr
-        print(max_gain)
-        print(best_attr)
-        return best_attr
-          
-          
-    
-    def buidTree1(self,data):
-        node = Node()
-        target_variables,count = np.unique(data["Class"],return_counts = True)
-        print(target_variables,count)
-        
-        if len(count)==1 or len(list(data))-1==0 :
-            node.value = target_variables[0]
-            return node
-            
-        if count[0]==0:
-            node.value = 1
-        elif count[1]==0:
-            node.value = 0
-        elif count[1]>count[0]:
-            node.value = 1
-        elif count[0]>count[1]:
-            node.value = 0
-        
-        best_attr = self.split_attr(data,count)
-        
-        if best_attr== '':
-            return node
-        
-        
-        node.attr = best_attr
-        dataL = defaultdict(list)
-        dataR = defaultdict(list)
+    def split_dataset(self, data, best_attr, value):
+        newdata = defaultdict(list)
         for attr in data.keys():
             for i in range(len(data[attr])):
-                if data[best_attr][i]=='0':
-                    dataL[attr].append(data[attr][i])
-                else:
-                    dataR[attr].append(data[attr][i])
-        dataL.pop(best_attr)
-        dataR.pop(best_attr)
-        try:
-            node.left= self.buidTree1(dataL)
-            node.right= self.buidTree1(dataR)
-        except:
-            node.left = None
-            node.right = None
-        return node
-    
-    def print_tree(self, node, depth):
-        tree = ''
-        sign = ''
-        if node is None:
-            return ' '
-        if node.left is None and node.right is None:
-            tree = tree + str(node.value) + '\n'
-            return tree
-        for i in range(depth):
-            sign = sign + '| '
-        tree = tree + sign
-        temp = node.attr
-        if node.left.left is None and node.left.right is None:
-            tree = tree + temp + "=0:"
-            tree = tree + self.print_tree(node.left, depth + 1)
-            tree = tree + sign
-        else:
-            tree = tree + temp + "=0:\n"
-            tree = tree + self.print_tree(node.left, depth + 1)
-            tree = tree + sign
-
-        if node.right.right is None and node.right.left is None:
-            tree = tree + temp + "=1:"
-            tree = tree + self.print_tree(node.right, depth + 1)
-        else:
-            tree = tree + temp + "=1:\n"
-            tree = tree + self.print_tree(node.right, depth + 1)
-
-        return tree
-    def Accuracy(self, root, data):
-
-        accurate_predictions = 0
-        for i in range(len(data["Class"])):
-            value = data["Class"][i]
-            if self.predict(root, data, value) == value:
-                accurate_predictions+=1
-        print(accurate_predictions)
-        print(len(data["Class"]))
-        return accurate_predictions/len(data["Class"])
+                if data[best_attr][i] == value:
+                    newdata[attr].append(data[attr][i])
+        return {k: v for k, v in newdata.items() if v is not None}
+    def getCount(self, arr):
+        count = np.unique(arr, return_counts = True)[1]
+        return count
+                
+    def entropy(self,column):
+        counts = self.getCount(column)
+        entropy = 0
+        total = sum(counts)
+        if len(counts)==0:
+            return 0
+        for i in range(len(counts)):
+            entropy += -counts[i]/total*np.log2(counts[i]/total)
+        return entropy
         
-    def predict(self, node, data, value):
-        if node.attr == '':
-            return node.value
-        if value == 1:
-            return self.predict(node.right, data, value)
+        
+    def InfoGain_entropy(self,data,attr_name):
+        total_entropy = self.entropy(data["Class"])
+        counts= self.getCount(data[attr_name])
+        
+        attr_Entropy = 0
+        for i in range(len(counts)):
+            probability = counts[i]/sum(counts)
+            split = self.split_dataset(data, attr_name, str(i))
+            split_entropy = self.entropy(split["Class"])
+            attr_Entropy += probability * split_entropy
+        
+        return total_entropy - attr_Entropy
+        
+    def variance(self, column):
+        counts = self.getCount(column)
+        total = sum(counts)
+        if len(counts)<=1:
+            return 0
+        variance = 1
+        for i in range(len(counts)):
+            variance*= counts[i]/total
+        return variance
+        
+    def InfoGain_variance(self,data,attr_name):
+        total_variance = self.variance(data["Class"])
+        counts= self.getCount(data[attr_name])
+        attr_impurity = 0
+        for i in range(len(counts)):
+            probability = counts[i]/sum(counts)
+            split = data.where(data[attr_name]==i).dropna()
+            split_variance = self.variance(split["Class"])
+            attr_impurity += probability * split_variance
+            
+        gain = total_variance - attr_impurity
+        return gain
+
+    def max_freq(self,data, target):
+#        counts = self.getCount(data[target])
+#        freq = np.argmax(counts)
+#        return int(np.unique(data[target])[freq])
+        return 0
+    
+    def buildTree(self, data, attributes, heuristic):
+        node = Node()
+        unique = np.unique(data["Class"])
+        if len(unique) == 1:
+            node.value = int(unique[0])
+        
+        elif len(data)==0:
+            node.value = self.max_freq(self.dataset, "Class")
+        
+        elif len(attributes) ==0:
+            node.value = node.parent
         else:
-            return self.predict(node.left, data , value)
+            node.parent = self.max_freq(data, "Class")
+            gains = []
+            
+            max_gain = np.NINF
+            best_attr = ''
+            if heuristic=='gain':
+                for attr in attributes:
+                    if attr!="Class":
+                        gain = self.InfoGain_entropy(data,attr)
+                        if max_gain<gain:
+                            max_gain = gain
+                            best_attr = attr
+            elif heuristic=='variance':
+                
+                for attr in attributes:
+                    gain = self.InfoGain_variance(data,attr)
+                    if max_gain<gain:
+                        max_gain = gain
+                        best_attr = attr
+                        
+                
+            node.attr = best_attr
+                
+            newAttrs = []
+            for attr in attributes:
+                if attr!=best_attr:
+                    newAttrs.append(attr)
+            attributes = newAttrs
+                
+            dataL = self.split_dataset(data, best_attr, '0')
+            node.left = self.buildTree(dataL,attributes, heuristic)
+                
+            dataR = self.split_dataset(data, best_attr, '1')
+            node.right = self.buildTree(dataR,attributes,heuristic)
+            
+        return(node)
+        
+        
+    def parse_tree(self, node , n):
+        s = ''
+        for i in range(n):
+            s+= '| '
+            
+        #left sub tree
+        s+= node.attr +"=0:"
+        if node.left.value is not None:
+            s+=str(node.left.value)+'\n'
+        else:
+            s+='\n'
+            s+=self.parse_tree(node.left, n+1)
+        for i in range(n):
+            s+= '| '
+            
+        #right sub tree
+        s+= node.attr +"=1:"
+        if node.right.value is not None:
+            s+=str(node.right.value)+'\n'
+        else:
+            s+='\n'
+            s+=self.parse_tree(node.right, n+1)
+        return s
+
+    def evaluate(self,data,value,node):
+        if node.attr is None:
+            return node.value
+        else:
+            if data[node.attr][value] == 0:
+                return self.evaluate(data, value, node.left)
+            else:
+                return self.evaluate(data, value, node.right)
+    
+    def accuracy(self, data, root):
+        predict = 0
+        for i in range(len(data["Class"])):
+            if self.evaluate(data, i, root) == data["Class"][i]:
+                predict+=1
+        print(predict)
+        print(len(data["Class"]))
+        return predict/len(data["Class"])
+    
+    
 
 def main():
     tree1 = DecisionTree()
-    tree2 =DecisionTree()
     trainData = tree1.load_csv("training_set.csv")
-    testData = tree2.load_csv("test_set.csv")
-
-    treeRoot = tree1.buidTree1(trainData)
-    treeRoottest =tree1.buidTree1(testData)
+    testData = tree1.load_csv("test_set.csv")
+    print(trainData.keys())
+    treeRoot = tree1.buildTree(trainData, trainData.keys(), "gain")
     
-    print(tree1.print_tree(treeRoot, 0))
-    print(tree1.Accuracy(treeRoot, trainData))
-    print(tree2.Accuracy(treeRoottest, testData))
+    print(tree1.parse_tree(treeRoot, 0))
+    print(tree1.accuracy(trainData, treeRoot))
+    print(tree1.accuracy(testData, treeRoot))
     
         
 #print(load_csv("training_set.csv")[0])
