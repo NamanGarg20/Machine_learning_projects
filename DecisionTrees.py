@@ -54,7 +54,7 @@ class DecisionTree:
         if len(counts)==0:
             return 0.0
         for i in range(len(counts)):
-            entropy += -float(counts[i])/total*np.log2(counts[i]/total)
+            entropy += -float(counts[i])/total*np.log2(float(counts[i])/total)
         return entropy
         
         
