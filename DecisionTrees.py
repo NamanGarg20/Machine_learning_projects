@@ -54,7 +54,7 @@ class DecisionTree:
         if len(counts)==0:
             return 0.0
         for i in range(len(counts)):
-            entropy += -counts[i]/total*np.log2(counts[i]/total)
+            entropy += -float(counts[i])/total*np.log2(counts[i]/total)
         return entropy
         
         
@@ -64,7 +64,7 @@ class DecisionTree:
         
         attr_Entropy = 0.0
         for i in range(len(counts)):
-            probability = counts[i]/sum(counts)
+            probability = float(counts[i])/sum(counts)
             split = self.split_dataset(data, attr_name, str(i))
             split_entropy = self.entropy(split["Class"])
             attr_Entropy += probability * split_entropy
@@ -78,7 +78,7 @@ class DecisionTree:
             return 0
         variance = 1.0
         for i in range(len(counts)):
-            variance*= counts[i]/total
+            variance*= float(counts[i])/total
         return variance
         
     def InfoGain_variance(self,data,attr_name):
@@ -86,7 +86,7 @@ class DecisionTree:
         counts= self.getCount(data[attr_name])
         attr_impurity = 0.0
         for i in range(len(counts)):
-            probability = counts[i]/sum(counts)
+            probability = float(counts[i])/sum(counts)
             split = self.split_dataset(data,attr_name,str(i))
             split_variance = self.variance(split["Class"])
             attr_impurity += probability * split_variance
