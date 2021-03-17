@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-from pprint import pprint
 import math
 
 def log2(x):
@@ -57,7 +56,7 @@ class decisionTree:
             return 0
         total = sum(counts)
         for i in range(len(counts)):
-            entropy += -counts[i]/total*log2(counts[i]/total)
+            entropy += -counts[i]/total*np.log2(counts[i]/total)
         return entropy
         
         
