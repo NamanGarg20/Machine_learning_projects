@@ -205,7 +205,8 @@ def main():
     testData = tree.load_csv(test_set)
     
     treeRoot = tree.buildTree(trainData, trainData.keys(), heuristic)
-    print('Accuracy for '+ heuristic+ ' heuristic for Training:',tree.accuracy(trainData, treeRoot)) )
+    
+    print('Accuracy for '+ heuristic+ ' heuristic for Training:', str(tree.accuracy(trainData, treeRoot)))
     print('Accuracy for '+ heuristic+ ' heuristic for Validation:', tree.accuracy(validationData, treeRoot) )
     print('Accuracy for '+ heuristic+ ' heuristic for Testing:', tree.accuracy(testData, treeRoot) )
         
