@@ -2,13 +2,6 @@ import sys
 import csv
 import numpy as np
 from collections import defaultdict
-import math
-
-
-def log2(x):
-    if x == 0:
-        return 0
-    return math.log(x,2)
 
 class Node:
     def __init__(self):
@@ -193,19 +186,31 @@ class DecisionTree:
     
 
 def main():
-    tree1 = DecisionTree()
-    trainData = tree1.load_csv("training_set.csv")
-    testData = tree1.load_csv("test_set.csv")
+    if (len(sys.argv) < 5): usage();
+    training_set = sys.argv[1]
+    validation_set = sys.argv[2]
+    test_set = sys.argv[3]
+    to-print = sys.argv[4]
+    heuristic = sys.argv[5]
     
-    treeRoot = tree1.buildTree(trainData, trainData.keys(), "gain")
-
-    print(tree1.parse_tree(treeRoot, 0))
+    tree = DecisionTree()
+    trainData = tree1.load_csv(training_set)
+    validationData = tree.load_csv(validation_set)
+    testData = tree1.load_csv(test_set)
     
-    treeRoot2 = tree1.buildTree(trainData, trainData.keys(), "variance")
-    print(tree1.parse_tree(treeRoot2, 0))
-    print(tree1.accuracy(trainData, treeRoot))
-    print(tree1.accuracy(testData, treeRoot2))
-    
+    treeRoot = tree.buildTree(trainData, trainData.keys(), heuristic)
+    print("Accuracy for ", heuristic, " heuristic for Training: ", tree.accuracy(trainData, treeRoot) )
+    print("Accuracy for ", heuristic, " heuristic for Validation: ", tree.accuracy(validationData, treeRoot) )
+    print("Accuracy for ", heuristic, " heuristic for Testing: ", tree.accuracy(testData, treeRoot) )
         
-#print(load_csv("training_set.csv")[0])
-main()
+
+    if to_print=="yes":
+        print("Parsing Decison Tree")
+        print(tree.parse_tree(treeRoot, 0))
+    
+def usage():
+    print('usage: pyhton DecisionTrees.py <training-set> <validation-set> <test-set> <to-print> to-print:{yes,no} <heuristic>')
+    sys.exit(1)
+
+if __name__ == "__main__":
+    main()
