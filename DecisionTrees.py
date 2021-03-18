@@ -190,22 +190,21 @@ def main():
     training_set = sys.argv[1]
     validation_set = sys.argv[2]
     test_set = sys.argv[3]
-    to-print = sys.argv[4]
+    to_print = sys.argv[4]
     heuristic = sys.argv[5]
     
     tree = DecisionTree()
-    trainData = tree1.load_csv(training_set)
+    trainData = tree.load_csv(training_set)
     validationData = tree.load_csv(validation_set)
-    testData = tree1.load_csv(test_set)
+    testData = tree.load_csv(test_set)
     
     treeRoot = tree.buildTree(trainData, trainData.keys(), heuristic)
-    print("Accuracy for ", heuristic, " heuristic for Training: ", tree.accuracy(trainData, treeRoot) )
-    print("Accuracy for ", heuristic, " heuristic for Validation: ", tree.accuracy(validationData, treeRoot) )
-    print("Accuracy for ", heuristic, " heuristic for Testing: ", tree.accuracy(testData, treeRoot) )
+    print('Accuracy for ', heuristic, ' heuristic for Training: ', tree.accuracy(trainData, treeRoot) )
+    print('Accuracy for ', heuristic, ' heuristic for Validation: ', tree.accuracy(validationData, treeRoot) )
+    print('Accuracy for ', heuristic, ' heuristic for Testing: ', tree.accuracy(testData, treeRoot) )
         
 
-    if to_print=="yes":
-        print("Parsing Decison Tree")
+    if to_print=='yes':
         print(tree.parse_tree(treeRoot, 0))
     
 def usage():
