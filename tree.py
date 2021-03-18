@@ -8,10 +8,10 @@ def log2(x):
     return math.log(x,2)
 
 def main():
-    file = "training_set.csv"
+    file = "training_set2.csv"
     tree = decisionTree()
-    testdata =pd.read_csv("test_set.csv")
-    valid = pd.read_csv("validation_set.csv")
+    testdata =pd.read_csv("test_set2.csv")
+    valid = pd.read_csv("validation_set2.csv")
     df = tree.load_csv(file)
     heuristic = 'gain'
     print("building Tree")
@@ -140,6 +140,7 @@ class decisionTree:
             attributes = newAttrs
                 
             dataL = data.where(data[best_attr] == 0).dropna()
+            print(dataL)
             node.left = self.buildTree(dataL,attributes, heuristic)
                 
             dataR = data.where(data[best_attr] == 1).dropna()
@@ -147,29 +148,35 @@ class decisionTree:
             
         return(node)
         
-    def parse_tree(self, node , n):
-        s = ''
-        for i in range(n):
-            s+= '| '
-            
-        #left sub tree
-        s+= node.attr +"=0:"
-        if node.left.value is not None:
-            s+=str(node.left.value)+'\n'
+    def parse_tree(self, node , depth):
+        tree = ''
+        sign = ''
+        if node is None:
+            return ' '
+        if node.left is None and node.right is None:
+            tree = tree + str(node.value) + '\n'
+            return tree
+        for i in range(depth):
+            sign = sign + '| '
+        tree = tree + sign
+        temp = node.attr
+        if node.left.left is None and node.left.right is None:
+            tree = tree + temp + "=0:"
+            tree = tree + self.parse_tree(node.left, depth + 1)
+            tree = tree + sign
         else:
-            s+='\n'
-            s+=self.parse_tree(node.left, n+1)
-        for i in range(n):
-            s+= '| '
-            
-        #right sub tree
-        s+= node.attr +"=1:"
-        if node.right.value is not None:
-            s+=str(node.right.value)+'\n'
+            tree = tree + temp + "=0:\n"
+            tree = tree + self.parse_tree(node.left, depth + 1)
+            tree = tree + sign
+
+        if node.right.right is None and node.right.left is None:
+            tree = tree + temp + "=1:"
+            tree = tree + self.parse_tree(node.right, depth + 1)
         else:
-            s+='\n'
-            s+=self.parse_tree(node.right, n+1)
-        return s
+            tree = tree + temp + "=1:\n"
+            tree = tree + self.parse_tree(node.right, depth + 1)
+
+        return tree
 
     def evaluate(self,data,value,node):
         if node.attr is None:

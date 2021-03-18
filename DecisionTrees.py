@@ -29,13 +29,16 @@ class DecisionTree:
         
     def split_dataset(self, data, best_attr, value):
         newdata = defaultdict(list)
-        for attr in data.keys():
-            newdata[attr] = []
+        
+        if len(data[best_attr])==0: # for missing data
+            return newdata
+            
         for attr in data.keys():
             for i in range(len(data[attr])):
                 if data[best_attr][i] == value:
                     newdata[attr].append(data[attr][i])
         return newdata
+        
     def getCount(self, arr):
         count = np.unique(arr, return_counts = True)[1]
         return count
@@ -91,12 +94,11 @@ class DecisionTree:
         counts = self.getCount(data[target])
         freq = np.argmax(counts)
         return int(np.unique(data[target])[freq])
-        return 0
     
     def buildTree(self, data, attributes, heuristic):
         node = Node()
         unique = np.unique(data["Class"])
-        if len(unique) == 1:
+        if len(unique) == 1: # return the value if all the values in "Class" attribute are same
             node.value = int(unique[0])
         
         elif len(data["Class"])==0:
@@ -107,7 +109,7 @@ class DecisionTree:
         else:
             node.parent = self.max_freq(data, "Class")
             
-            max_gain = np.NINF
+            max_gain = np.NINF # -infinity
             best_attr = ''
             if heuristic=='gain':
                 for attr in attributes:
@@ -128,17 +130,18 @@ class DecisionTree:
                 
             node.attr = best_attr
                 
+            #remove the best attribute from the dataset
             newAttrs = []
             for attr in attributes:
                 if attr!=best_attr:
                     newAttrs.append(attr)
             attributes = newAttrs
                 
-            dataL = self.split_dataset(data, best_attr, '0')
-            node.left = self.buildTree(dataL,attributes, heuristic)
+            dataL = self.split_dataset(data, best_attr, '0') #spliting the dataset on the best attribute's values
+            node.left = self.buildTree(dataL,attributes, heuristic) #left branch
                 
             dataR = self.split_dataset(data, best_attr, '1')
-            node.right = self.buildTree(dataR,attributes,heuristic)
+            node.right = self.buildTree(dataR,attributes,heuristic) #right branch
             
         return(node)
         
@@ -171,10 +174,13 @@ class DecisionTree:
         if node.attr is None:
             return node.value
         else:
-            if data[node.attr][value] == '0':
-                return self.evaluate(data, value, node.left)
+            if len(data[node.attr])!=0:
+                if data[node.attr][value] == '0':
+                    return self.evaluate(data, value, node.left)
+                else:
+                    return self.evaluate(data, value, node.right)
             else:
-                return self.evaluate(data, value, node.right)
+                return node.value
     
     def accuracy(self, data, root):
         predict = 0.0
