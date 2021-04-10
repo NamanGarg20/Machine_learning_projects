@@ -1,6 +1,7 @@
 import numpy as np
 import sys
 import os
+import io
 from collections import Counter
 from collections import defaultdict
 from nltk.stem import PorterStemmer
@@ -35,7 +36,7 @@ class MultinomialNaiveBayes:
         num_class = 0
         for filename in os.listdir(path):
             nPath = path + "/" + filename
-            file = open(nPath,'r', errors='ignore')
+            file = io.open(nPath,'r', errors='ignore')
             words = Counter(file.read().split())
             words = self.stemData(words)
             for word, count in words.items():
@@ -129,7 +130,7 @@ class MultinomialNaiveBayes:
         
         for filename in os.listdir(path_ham):
             nPath = path_ham + "/" + filename
-            file = open(nPath,'r', errors='ignore')
+            file = io.open(nPath,'r', errors='ignore')
             words = Counter(file.read().split())
             words = self.stemData(words)
             if stopWords:
@@ -141,7 +142,7 @@ class MultinomialNaiveBayes:
         path_spam = path + "/spam"
         for filename in os.listdir(path_spam):
             nPath = path_spam + "/" + filename
-            file = open(nPath, 'r', errors='ignore')
+            file = io.open(nPath, 'r', errors='ignore')
             words = Counter(file.read().split())
             words = self.stemData(words)
             if stopWords:
