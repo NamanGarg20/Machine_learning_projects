@@ -70,7 +70,7 @@ class Perceptron:
                     else:
                         target_value = -1
                     for word, count in words.items():
-                        self.weights[word] += float(self.learning_rate)*float((target_value - output))*float(count) 
+                        self.weights[word] += float(self.learning_rate)*float((target_value - output))*float(count)
 
                 
         
@@ -137,7 +137,8 @@ def main():
             perceptron = Perceptron()
             perceptron.learning_rate = lr
             perceptron.epochs = epoch
-            print(i, "learning rate:", perceptron.learning_rate, "Iterations:", perceptron.epochs, "Accuracy:" , perceptron.accuracy("./test"))
+            s = str(i)+ " learning rate: "+ str(perceptron.learning_rate)+ " Iterations: "+ str(perceptron.epochs)+" Accuracy: "+ str(perceptron.accuracy("./test"))
+            print(s)
     
 #    perceptron = Perceptron()
 #    perceptron.learning_rate = 0.5
@@ -153,8 +154,8 @@ def main():
             perceptron.learning_rate = lr
             perceptron.epochs = epoch
             perceptron.stopWords = True
-            print(i, "learning rate:", perceptron.learning_rate, "Iterations:", perceptron.epochs, "Accuracys:" , perceptron.accuracy("./test"))
-    
+            s = str(i)+ " learning rate: "+ str(perceptron.learning_rate)+ " Iterations: "+ str(perceptron.epochs)+" Accuracy: "+ str(perceptron.accuracy("./test"))
+            print(s)
 #    perceptron = Perceptron()
 #    perceptron.learning_rate = 0.5
 #    perceptron.epochs = 10000
